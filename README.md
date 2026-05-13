@@ -41,8 +41,9 @@ This demo application highlights:
 
 Customers can complete payments using:
 
-- Stablecoins
+- Stablecoins(USDT, MUSD, USDC)
 - ETH
+- MEZO
 - Volatile crypto assets
 - EVM compatible tokens
 - Local fiat pricing in GHS and USD
