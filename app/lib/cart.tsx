@@ -38,10 +38,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
     );
   };
 
-  const clear = () => setItems([]);
+  const clear = () => {
+    console.log("[CartContext] clear() called — items BEFORE clear:", items);
+    console.log("[CartContext] items count before clear:", items.length);
+    setItems([]);
+    console.log("[CartContext] setItems([]) called — state update scheduled");
+  };
 
   const total = items.reduce((s, i) => s + i.price * i.quantity, 0);
   const count = items.reduce((s, i) => s + i.quantity, 0);
+
+  console.log(
+    "[CartContext] render — items:",
+    items.length,
+    "total:",
+    total,
+    "count:",
+    count
+  );
 
   return (
     <CartContext.Provider

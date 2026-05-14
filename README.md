@@ -6,7 +6,7 @@ This project demonstrates how merchants and developers can integrate KwesPay dir
 
 ---
 
-# About KwesPay
+## About KwesPay
 
 KwesPay is a global crypto payment infrastructure platform focused on simplifying onchain commerce for merchants, developers, and businesses.
 
@@ -16,43 +16,38 @@ The platform enables:
 - Stablecoin and volatile token payments
 - Fast settlement
 - Automated payment verification
-- Multi asset support
+- Multi-asset support
 - Localized commerce experiences
 
-with a strong focus on African and cross border commerce.
+with a strong focus on African and cross-border commerce.
 
 ---
 
-# What This Demo Showcases
+## What This Demo Showcases
 
-This demo application highlights:
-
-- Embedded KwesPay checkout
-- Seamless payment flows inside Next.js apps
+- Embedded KwesPay checkout inside a Next.js app
+- Seamless payment flows with a single function call
 - Stablecoin and volatile asset payments
-- Dynamic checkout integration
 - Onchain payment confirmation handling
 - Local fiat pricing support (GHS & USD)
 - Modern commerce UX
 
 ---
 
-# Supported Payments
+## Supported Payments
 
 Customers can complete payments using:
 
-- Stablecoins(USDT, MUSD, USDC)
+- Stablecoins (USDT, MUSD, USDC)
 - ETH
 - MEZO
 - Volatile crypto assets
-- EVM compatible tokens
+- Any EVM-compatible token
 - Local fiat pricing in GHS and USD
-
-including assets like ETH, USDC, and USDT.
 
 ---
 
-# Tech Stack
+## Tech Stack
 
 - Next.js 14
 - React
@@ -63,9 +58,9 @@ including assets like ETH, USDC, and USDT.
 
 ---
 
-# Project Structure
+## Project Structure
 
-```bash id="w0a7nk"
+```bash
 app/
 ├── lib/
 │   ├── cart.ts
@@ -83,170 +78,140 @@ app/
 
 ---
 
-# KwesPay Integration
+## KwesPay Integration
 
-## Install the Widget
+### Install the Widget
 
-```bash id="e8g5lr"
+```bash
 npm install @kwespay/widget
 ```
 
 ---
 
-# Dynamic Widget Loading
-
-The checkout widget is loaded dynamically only when payment is initiated.
-
-```ts id="v2r6xa"
-const { default: KwesPayWidget } = await import("@kwespay/widget");
-```
-
-This improves application performance and reduces unnecessary bundle size.
-
----
-
-# Initialize KwesPay
-
-```ts id="u9d1qm"
-widgetRef.current = new KwesPayWidget({
-  apiKey: "YOUR_PUBLIC_API_KEY",
-  vendorId: "YOUR_VENDOR_ID",
-  amount: total,
-  currency: "USD", // supports fiat pricing including USD and GHS
-});
-```
-
----
-
-# Configuration
-
-| Key        | Description            |
-| ---------- | ---------------------- |
-| `apiKey`   | Public KwesPay API key |
-| `vendorId` | Merchant/vendor UUID   |
-| `amount`   | Payment amount         |
-| `currency` | Fiat pricing currency  |
-
----
-
-# Handle Successful Payments
-
-KwesPay emits a `kwespay:paymentSuccess` event after successful onchain payment confirmation.
-
-```ts id="n4t8by"
-document.addEventListener("kwespay:paymentSuccess", (e: Event) => {
-  const { transactionHash } = (e as CustomEvent).detail;
-
-  finalize(transactionHash);
-});
-```
-
-The transaction hash can be displayed to users or synced with backend systems.
-
----
-
-# Open Embedded Checkout
-
-```ts id="h7m2qs"
-widgetRef.current.open();
-```
-
-Update the payment amount dynamically if the widget instance already exists:
-
-```ts id="x1k5dz"
-widgetRef.current.updateAmount(total, "USD");
-```
-
----
-
-# Full Integration Example
-
-```tsx id="s5p3fv"
-const openKwesPayWidget = async () => {
-  if (!widgetRef.current) {
-    const { default: KwesPayWidget } = await import("@kwespay/widget");
-
-    widgetRef.current = new KwesPayWidget({
-      apiKey: process.env.NEXT_PUBLIC_KWESPAY_API_KEY!,
-      vendorId: process.env.NEXT_PUBLIC_KWESPAY_VENDOR_ID!,
-      amount: total,
-      currency: "USD",
-    });
-
-    document.addEventListener("kwespay:paymentSuccess", (e: Event) => {
-      const { transactionHash } = (e as CustomEvent).detail;
-
-      finalize(transactionHash);
-    });
-  } else {
-    widgetRef.current.updateAmount(total, "USD");
-  }
-
-  widgetRef.current.open();
-};
-```
-
----
-
-# Environment Variables
+### Environment Variables
 
 Create a `.env.local` file:
 
-```env id="b3r7wp"
+```env
 NEXT_PUBLIC_KWESPAY_API_KEY=pk_your_public_key
 NEXT_PUBLIC_KWESPAY_VENDOR_ID=your_vendor_uuid
-```
-
-Reference them inside the checkout component:
-
-```ts id="f9q4uh"
-apiKey: process.env.NEXT_PUBLIC_KWESPAY_API_KEY!,
-vendorId: process.env.NEXT_PUBLIC_KWESPAY_VENDOR_ID!,
 ```
 
 > Never expose secret keys (`sk_...`) in frontend applications.
 
 ---
 
-# Getting Started
+### Full Integration Example
 
-## Install Dependencies
+The widget is loaded dynamically — only when payment is initiated — so it stays
+out of the initial bundle.
 
-```bash id="q2z6vc"
+```ts
+const handleCryptoPay = async () => {
+  const { kwespay } = await import("@kwespay/widget");
+
+  try {
+    const result = await kwespay({
+      apiKey: process.env.NEXT_PUBLIC_KWESPAY_API_KEY!,
+      vendorId: process.env.NEXT_PUBLIC_KWESPAY_VENDOR_ID!,
+      amount: total,
+      currency: "USD", // supports USD and GHS
+    });
+
+    // result.transactionHash is available immediately after confirmation
+    finalize(result.transactionHash);
+  } catch (err: any) {
+    if (err?.code !== "USER_CANCELLED") {
+      console.error("Payment failed:", err?.message);
+    }
+  }
+};
+```
+
+`kwespay()` handles everything internally — widget construction, amount
+reconciliation on re-opens, and cleanup after the payment settles. No refs,
+no event listeners, no lifecycle management required.
+
+---
+
+### Configuration
+
+| Key              | Description                                               |
+| ---------------- | --------------------------------------------------------- |
+| `apiKey`         | Public KwesPay API key (`pk_...`)                         |
+| `vendorId`       | Merchant/vendor UUID                                      |
+| `amount`         | Fiat amount to charge                                     |
+| `currency`       | Fiat pricing currency (`"USD"` or `"GHS"`)                |
+| `acceptedTokens` | Optional — restrict to specific tokens or `"stablecoins"` |
+
+---
+
+### Payment Result
+
+`kwespay()` returns a Promise that resolves with:
+
+```ts
+{
+  transactionHash: string; // On-chain transaction hash
+  transactionReference: string; // KwesPay internal reference
+  paymentIdBytes32: string; // On-chain payment ID (bytes32)
+  transactionStatus: "completed" | "unconfirmed";
+  fiatAmount: number;
+  currency: string;
+  token: string;
+  network: string;
+}
+```
+
+The Promise rejects with an `Error` whose `.code` is one of:
+
+| Code             | Meaning                                           |
+| ---------------- | ------------------------------------------------- |
+| `USER_CANCELLED` | User closed the widget without completing payment |
+| `USER_REJECTED`  | User rejected the transaction in their wallet     |
+| `UNKNOWN`        | Unexpected error — check `err.message`            |
+
+---
+
+## Getting Started
+
+### Install Dependencies
+
+```bash
 npm install
 ```
 
-## Start Development Server
+### Start Development Server
 
-```bash id="m7n1ta"
+```bash
 npm run dev
 ```
 
-## Production Build
+### Production Build
 
-```bash id="d8w3ke"
+```bash
 npm run build
 npm start
 ```
 
 ---
 
-# Why This Demo Exists
+## Why This Demo Exists
 
 This project exists to demonstrate how easily KwesPay can be embedded into modern commerce applications.
 
 Instead of building:
 
-- smart contract infrastructure
-- wallet handling systems
-- blockchain indexing pipelines
-- payment verification logic
-- settlement tracking systems
+- Smart contract infrastructure
+- Wallet handling systems
+- Blockchain indexing pipelines
+- Payment verification logic
+- Settlement tracking systems
 
 developers can integrate KwesPay with a few lines of code and focus entirely on commerce and user experience.
 
 ---
 
-# Powered By
+## Powered By
 
-- [KwesPay](https://kwespay.xyz)
+[KwesPay](https://kwespay.xyz)
