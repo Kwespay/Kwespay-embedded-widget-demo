@@ -83,7 +83,6 @@ export default function Checkout({ open, onClose }: CheckoutProps) {
     }, 5000);
   };
 
-
   const handleCardPay = () => {
     if (!cardValid) return;
     handleSuccess();
@@ -95,8 +94,8 @@ export default function Checkout({ open, onClose }: CheckoutProps) {
     setCryptoPending(true);
     try {
       const result = await kwespay({
-        apiKey: "pk_R8hr9_LntcbHOkoueSgTpCuAHoYdX9ZZVQaf8ecshbs",
-        vendorId: "ccd3f764-5600-40ab-b7c8-46f54057a527",
+        apiKey: process.env.NEXT_PUBLIC_KWESPAY_API_KEY!,
+        vendorId: process.env.NEXT_PUBLIC_KWESPAY_VENDOR_ID!,
         amount: total,
         currency: "USD",
       });
